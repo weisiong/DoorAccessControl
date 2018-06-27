@@ -859,6 +859,3 @@ int HttpClient::readHeader()
     // And return the character read to whoever wants it
     return c;
 }
-
-
-

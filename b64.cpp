@@ -69,4 +69,3 @@ int b64_encode(const unsigned char* aInput, int aInputLen, unsigned char* aOutpu
 
     return ((aInputLen+2)/3)*4;
 }
-

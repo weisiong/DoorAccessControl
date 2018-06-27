@@ -6,6 +6,8 @@ class DOOR_CONTROL{
       void setup( void );
       void Open(int closeAfterSecs);
       void Close();
+      void BuzzerON();
+      void BuzzerOFF();
 };
    
 #endif

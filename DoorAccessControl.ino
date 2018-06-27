@@ -4,23 +4,24 @@
 #include "RfidReader.h"
 #include "WebClient.h"
 #include "DoorControl.h"
-#include "LednKey.h"
+#include "LCD_I2C.h"
 
 RFID_READER reader;
 WEB_CLIENT wc;
 DOOR_CONTROL door;
-LED_AND_KEY lednkey;
+LCD_I2C lcd;
 
 void setup() {
   Serial.begin(9600);
   Serial.println(F("Initializing..."));
   reader.setup();
   door.setup();
-  lednkey.setup();
+  lcd.setup();
   wc.setup();
   TimedEvent.addTimer(500, event_rfid);
-  TimedEvent.addTimer(500, event_lednkey);
+  TimedEvent.addTimer(20000, event_lcd);
   Serial.println(F("Initialized."));
+  lcd.Display("Ready.",0,0);
 }
 
 void event_rfid(TimerInformation* Sender) {
@@ -28,8 +29,13 @@ void event_rfid(TimerInformation* Sender) {
   {
     Serial.print("Card Detected. ");
     Serial.println("ID: " + UUID);
-    lednkey.Display(UUID);
-    String URL = "/api/DoorAccess?id=" + UUID;
+    lcd.Display(UUID,0,0);
+    lcd.Display("           ",0,1);
+    //http://210.19.20.195/tll/IOT/testid.asp?ID=12345678
+    //http://210.19.20.195/tll/IOT/testid2.asp?ID=12345678
+
+    String URL = "/tll/IOT/testid2.asp?ID=" + UUID;
+   
     String respBody="";
     int respCode=-1;
     int ret = wc.webget(URL, respBody, respCode);
@@ -37,38 +43,23 @@ void event_rfid(TimerInformation* Sender) {
     {
       //Serial.println("respCode: " + String(respCode));
       Serial.println("response: " + respBody);
-      if(respBody=="\"Pass\"") openDoor();      
-      if(respBody=="\"Fail\"") lednkey.Display("FAIL");
+      int resp = respBody.toInt();
+      if(resp==0) {lcd.Display("0-Ignore  ",0,1);}
+      if(resp==1) {lcd.Display("1-Door    ",0,1); openDoor();}   
+      if(resp==2) {lcd.Display("2-Wait    ",0,1);}
+      if(resp==3) {lcd.Display("3-Beep    ",0,1); door.BuzzerON();delay(500);door.BuzzerOFF();}
     }
-    
   }
 }
-
 void openDoor()
 {
-  lednkey.Display("OPEN");
+  lcd.Display("OPEN      ",0,1);
   door.Open(3000);
-  lednkey.Display("CLOSE");
+  lcd.Display("CLOSE     ",0,1);
 }
 
-void event_lednkey(TimerInformation* Sender) {
-   lednkey.loop();
-   bool btnState = lednkey.isButtonPressed(0);
-   if(btnState)
-   {
-      lednkey.setLed(0,btnState);
-      openDoor();
-   }
-
-   btnState = lednkey.isButtonPressed(1);
-   if(btnState)
-   {
-      lednkey.setLed(1,btnState);
-      lednkey.Display("FAIL");
-   }
-   
-   //lednkey.setLed(5, lednkey.isButtonPressed(5));
-   //lednkey.setLed(7, lednkey.isButtonPressed(7));
+void event_lcd(TimerInformation* Sender) {
+//   lcd.loop();
 }
 
 void loop() {

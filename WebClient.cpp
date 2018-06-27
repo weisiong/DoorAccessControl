@@ -13,7 +13,7 @@ IPAddress subnet(255, 255, 255, 0);
 
 EthernetClient net;
 
-const char serverAddress[] = "192.168.1.138";  // server address
+const char serverAddress[] ="210.19.20.195"; //"192.168.1.138";  // server address
 int port = 80;
 HttpClient client = HttpClient(net, serverAddress, port);
 
